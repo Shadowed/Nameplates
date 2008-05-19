@@ -442,15 +442,18 @@ register:SetScript("OnShow", function(self)
 	dialog:SetDefaultSize("Nameplates-Bliz", 600, 400)
 	dialog:AddToBlizOptions("Nameplates-Bliz", "Nameplates")
 	
-	config:RegisterOptionsTable("Nameplates-General", options.args.general)
-	dialog:AddToBlizOptions("Nameplates-General", options.args.general.name, "Nameplates")
-
-	config:RegisterOptionsTable("Nameplates-General", options.args.general)
-	dialog:AddToBlizOptions("Nameplates-General", options.args.general.name, "Nameplates")
-
-	config:RegisterOptionsTable("Nameplates-General", options.args.general)
-	dialog:AddToBlizOptions("Nameplates-General", options.args.general.name, "Nameplates")
-
 	config:RegisterOptionsTable("Nameplates-Profile", options.args.profile)
 	dialog:AddToBlizOptions("Nameplates-Profile", options.args.profile.name, "Nameplates")
+
+	config:RegisterOptionsTable("Nameplates-Text", options.args.text)
+	dialog:AddToBlizOptions("Nameplates-Text", options.args.text.name, "Nameplates")
+
+	config:RegisterOptionsTable("Nameplates-Level", options.args.level)
+	dialog:AddToBlizOptions("Nameplates-Level", options.args.level.name, "Nameplates")
+
+	config:RegisterOptionsTable("Nameplates-Name", options.args.name)
+	dialog:AddToBlizOptions("Nameplates-Name", options.args.name.name, "Nameplates")
+
+	config:RegisterOptionsTable("Nameplates-General", options.args.general)
+	dialog:AddToBlizOptions("Nameplates-General", options.args.general.name, "Nameplates")
 end)
