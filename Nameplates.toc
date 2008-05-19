@@ -2,7 +2,7 @@
 ## Title: Nameplates Modifier
 ## Notes: Allows you to do basic configuration to the default Blizzard nameplates
 ## Author: Mayen
-## Version: $Revision: 666 $
+## Version: $Revision$
 ## SavedVariables: NameplatesDB
 ## OptionalDeps: LibStub, Ace3
 
@@ -23,3 +23,4 @@ localization.frFR.lua
 
 Nameplates.lua
 config.lua
+bindings.lua

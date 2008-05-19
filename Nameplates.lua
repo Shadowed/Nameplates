@@ -14,27 +14,76 @@ function Nameplates:OnInitialize()
 			castType = "crtmax",
 
 			barTexture = "Nameplates Default",
+			
+			bindings = false,
+			hideHealth = false,
+			hideCast = false,
 
-			name = { name = "Friz Quadrata TT", size = 12, border = "" },
-			level = { name = "Friz Quadrata TT", size = 11, border = "" },
-			text = { name = "Friz Quadrata TT", size = 8, border = "OUTLINE" },
+			name = { name = "Friz Quadrata TT", size = 12, border = "", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0 },
+			level = { name = "Friz Quadrata TT", size = 11, border = "", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0  },
+			text = { name = "Friz Quadrata TT", size = 8, border = "OUTLINE", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0  },
 		},
 	}
 
 	self.db = LibStub:GetLibrary("AceDB-3.0"):New("NameplatesDB", self.defaults)
-	self.revision = tonumber(string.match("$Revision: 692 $", "(%d+)") or 1)
+	self.revision = tonumber(string.match("$Revision$", "(%d+)") or 1)
 	
 
 	SML = LibStub:GetLibrary("LibSharedMedia-3.0")
 end
 
-function Nameplates:OnShow(frame)
-	frame:SetStatusBarTexture(SML:Fetch(SML.MediaType.STATUSBAR, self.db.profile.barTexture))
-	frame.NPText:SetFont(SML:Fetch(SML.MediaType.FONT, self.db.profile.text.name), self.db.profile.text.size, self.db.profile.text.border)
+function Nameplates:SetupFontString(text, type)
+	local config = self.db.profile[type]	
+
+	text:SetFont(SML:Fetch(SML.MediaType.FONT, config.name), config.size, config.border)
+	
+
+	-- Set shadow
+	if( config.shadowEnabled ) then
+		if( not text.NPOriginalShadow ) then
+			local x, y = text:GetShadowOffset()
+			local r, g, b, a = text:GetShadowColor()
+			
+			text.NPOriginalShadow = { r = r, g = g, b = b, a = a, y = y, x = x }
+		end
 		
-	local _, _, _, _, nameText, levelText = frame:GetParent():GetRegions()
-	nameText:SetFont(SML:Fetch(SML.MediaType.FONT, self.db.profile.name.name), self.db.profile.name.size, self.db.profile.name.border)
-	levelText:SetFont(SML:Fetch(SML.MediaType.FONT, self.db.profile.level.name), self.db.profile.level.size, self.db.profile.level.border)
+		text:SetShadowColor(config.shadowColor.r, config.shadowColor.g, config.shadowColor.b, config.shadowColor.a)
+		text:SetShadowOffset(config.x, config.y)
+		
+	-- Restore original
+	elseif( text.NPOriginalShadow ) then
+		text:SetShadowColor(text.NPOriginalShadow.r, text.NPOriginalShadow.g, text.NPOriginalShadow.b, text.NPOriginalShadow.a)
+		text:SetShadowOffset(text.NPOriginalShadow.x, text.NPOriginalShadow.y)
+		text.NPOriginalShadow = nil
+	end
+end
+
+function Nameplates:SetupHiding(texture, type)
+	-- Hide the border
+	if( self.db.profile[type] ) then
+		texture:SetHeight(0)
+		texture:SetWidth(0)
+		texture:SetTexture(0, 0, 0, 0)
+		texture:Hide()
+	end
+end
+
+
+function Nameplates:OnShow(frame)
+	local healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetParent():GetRegions()
+	
+
+	-- Health bar
+	frame:SetStatusBarTexture(SML:Fetch(SML.MediaType.STATUSBAR, self.db.profile.barTexture))
+	
+	-- Font string config
+	Nameplates:SetupFontString(frame.NPText, "text")
+	Nameplates:SetupFontString(nameText, "name")
+	Nameplates:SetupFontString(levelText, "level")
+	
+	-- Hide borders
+	Nameplates:SetupHiding(healthBorder, "hideHealth")
+	Nameplates:SetupHiding(castBorder, "hideCast")
 end
 
 function Nameplates:HealthOnValueChanged(frame, value)
