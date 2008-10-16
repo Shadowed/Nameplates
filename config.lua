@@ -132,6 +132,7 @@ local function loadOptions()
 				order = 1,
 				type = "select",
 				name = L["Bar texture"],
+		                dialogControl = "LSM30_Statusbar",
 				values = "GetTextures",
 				arg = "barTexture",
 			},
@@ -191,6 +192,7 @@ local function loadOptions()
 				name = L["Font name"],
 				desc = L["Font name for the health bar text."],
 				values = "GetFonts",
+		                dialogControl = "LSM30_Font",
 				arg = "text.name",
 			},
 			type = {
@@ -265,6 +267,7 @@ local function loadOptions()
 				name = L["Font name"],
 				desc = L["Font name for the actual name text above name plate bars."],
 				values = "GetFonts",
+		                dialogControl = "LSM30_Font",
 				arg = "name.name",
 			},
 			type = {
@@ -339,6 +342,7 @@ local function loadOptions()
 				name = L["Font name"],
 				desc = L["Font name for the level text."],
 				values = "GetFonts",
+		                dialogControl = "LSM30_Font",
 				arg = "level.name",
 			},
 			type = {

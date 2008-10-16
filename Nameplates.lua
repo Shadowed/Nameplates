@@ -33,8 +33,12 @@ function Nameplates:OnInitialize()
 end
 
 function Nameplates:SetupFontString(text, type)
+	-- No idea why this is needed
+	if( not text.SetFont ) then
+		return
+	end
+	
 	local config = self.db.profile[type]	
-
 	text:SetFont(SML:Fetch(SML.MediaType.FONT, config.name), config.size, config.border)
 	
 
@@ -163,7 +167,7 @@ local function hookFrames(...)
 	for i=1, select("#", ...) do
 		local frame = select(i, ...)
 		local region = frame:GetRegions()
-		if( not frames[frame] and not frame:GetName() and region and region:GetObjectType() == "Texture" and region:GetTexture() == "Interface\\Tooltips\\Nameplate-Border" ) then
+		if( not frames[frame] and not frame:GetName() and region and region:GetObjectType() == "Texture" and region:GetTexture() == "Interface\\TargetingFrame\\UI-TargetingFrame-Flash" ) then
 			frames[frame] = true
 
 			local healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetRegions()
