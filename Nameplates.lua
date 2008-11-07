@@ -41,7 +41,6 @@ function Nameplates:SetupFontString(text, type)
 	local config = self.db.profile[type]	
 	text:SetFont(SML:Fetch(SML.MediaType.FONT, config.name), config.size, config.border)
 	
-
 	-- Set shadow
 	if( config.shadowEnabled ) then
 		if( not text.NPOriginalShadow ) then
@@ -74,8 +73,7 @@ end
 
 
 function Nameplates:OnShow(frame)
-	local healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetParent():GetRegions()
-	
+	local threatGlow, healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetParent():GetRegions()
 
 	-- Health bar
 	frame:SetStatusBarTexture(SML:Fetch(SML.MediaType.STATUSBAR, self.db.profile.barTexture))
@@ -91,9 +89,7 @@ function Nameplates:OnShow(frame)
 end
 
 function Nameplates:HealthOnValueChanged(frame, value)
-	local _, maxValue = frame:GetMinMaxValues()
-
-	
+	local maxValue = select(2, frame:GetMinMaxValues())
 	if( self.db.profile.healthType == "minmax" ) then
 		if( maxValue == 100 ) then
 			frame.NPText:SetFormattedText("%d%% / %d%%", value, maxValue)	
@@ -123,7 +119,6 @@ end
 
 function Nameplates:CastOnValueChanged(frame, value)
 	local minValue, maxValue = frame:GetMinMaxValues()
-	
 	if( value >= maxValue or value == 0 ) then
 		frame.NPText:SetText("")
 		return
@@ -170,7 +165,7 @@ local function hookFrames(...)
 		if( not frames[frame] and not frame:GetName() and region and region:GetObjectType() == "Texture" and region:GetTexture() == "Interface\\TargetingFrame\\UI-TargetingFrame-Flash" ) then
 			frames[frame] = true
 
-			local healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetRegions()
+			local threatGlow, healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon = frame:GetParent():GetRegions()
 			local health, cast = frame:GetChildren()
 			
 			self:CreateText(health)
