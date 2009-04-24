@@ -23,64 +23,34 @@ end
 
 -- GUI
 local function set(info, value)
-	local arg1, arg2, arg3 = string.split(".", info.arg)
-	if( tonumber(arg2) ) then arg2 = tonumber(arg2) end
-	
-	if( arg2 and arg3 ) then
-		Nameplates.db.profile[arg1][arg2][arg3] = value
-	elseif( arg2 ) then
-		Nameplates.db.profile[arg1][arg2] = value
+	local cat = info[1]
+	if( cat == "general" ) then
+		Nameplates.db.profile[info[#(info)]] = value
+		Nameplates:Reload()
 	else
-		Nameplates.db.profile[arg1] = value
+		Nameplates.db.profile[cat][info[#(info)]] = value
+		Nameplates:Reload()
 	end
-	
-	Nameplates:Reload()
 end
 
 local function get(info)
-	local arg1, arg2, arg3 = string.split(".", info.arg)
-	if( tonumber(arg2) ) then arg2 = tonumber(arg2) end
-		
-	if( arg2 and arg3 ) then
-		return Nameplates.db.profile[arg1][arg2][arg3]
-	elseif( arg2 ) then
-		return Nameplates.db.profile[arg1][arg2]
-	else
-		return Nameplates.db.profile[arg1]
+	local cat = info[1]
+	if( cat == "general" ) then
+		return Nameplates.db.profile[info[#(info)]]
 	end
-end
-
-local function setNumber(info, value)
-	set(info, tonumber(value))
+	
+	return Nameplates.db.profile[cat][info[#(info)]]
 end
 
 -- Yes this is a quick hack
 local function setColor(info, r, g, b, a)
-	local arg1, arg2, arg3 = string.split(".", info.arg)
-	if( tonumber(arg2) ) then arg2 = tonumber(arg2) end
+	local cat = info[1]
+	local key = info[#(info)]
 	
-	if( arg2 and arg3 and arg4 ) then
-		Nameplates.db.profile[arg1][arg2][arg3][arg4].r = r
-		Nameplates.db.profile[arg1][arg2][arg3][arg4].g = g
-		Nameplates.db.profile[arg1][arg2][arg3][arg4].b = b
-		Nameplates.db.profile[arg1][arg2][arg3][arg4].a = a
-	elseif( arg2 and arg3 ) then
-		Nameplates.db.profile[arg1][arg2][arg3].r = r
-		Nameplates.db.profile[arg1][arg2][arg3].g = g
-		Nameplates.db.profile[arg1][arg2][arg3].b = b
-		Nameplates.db.profile[arg1][arg2][arg3].a = a
-	elseif( arg2 ) then
-		Nameplates.db.profile[arg1][arg2].r = r
-		Nameplates.db.profile[arg1][arg2].g = g
-		Nameplates.db.profile[arg1][arg2].b = b
-		Nameplates.db.profile[arg1][arg2].a = a
-	else
-		Nameplates.db.profile[arg1].r = r
-		Nameplates.db.profile[arg1].g = g
-		Nameplates.db.profile[arg1].b = b
-		Nameplates.db.profile[arg1].a = a
-	end
-	
+	Nameplates.db.profile[cat][key].r = r
+	Nameplates.db.profile[cat][key].g = g
+	Nameplates.db.profile[cat][key].b = b
+	Nameplates.db.profile[cat][key].a = a
 	Nameplates:Reload()
 end
 
@@ -114,6 +84,72 @@ end
 
 local fontBorders = {[""] = L["None"], ["OUTLINE"] = L["Outline"], ["THICKOUTLINE"] = L["Thick outline"], ["MONOCHROME"] = L["Monochrome"]}
 
+local function loadTextSettings(config)
+	config.args.font = {
+		order = 1,
+		type = "group",
+		inline = true,
+		name = L["Font"],
+		args = {
+			name = {
+				order = 1,
+				type = "select",
+				name = L["Font name"],
+				values = "GetFonts",
+				dialogControl = "LSM30_Font",
+			},
+			border = {
+				order = 2,
+				type = "select",
+				name = L["Font border"],
+				values = fontBorders,
+			},
+			size = {
+				order = 3,
+				type = "range",
+				name = L["Font size"],
+				min = 1, max = 20, step = 1,
+			},
+		},
+	}
+	
+	config.args.shadow = {
+		order = 4,
+		type = "group",
+		inline = true,
+		name = L["Shadow"],
+		args = {
+			shadowEnabled = {
+				order = 0,
+				type = "toggle",
+				name = L["Enable shadow"],
+			},
+			shadowColor = {
+				order = 1,
+				type = "color",
+				name = L["Shadow color"],
+				hasAlpha = true,
+				set = setColor,
+				get = getColor,
+			},
+			x = {
+				order = 2,
+				type = "range",
+				name = L["Shadow offset X"],
+				min = -2, max = 2, step = 1,
+				set = setNumber,
+			},
+			y = {
+				order = 3,
+				type = "range",
+				name = L["Shadow offset Y"],
+				min = -2, max = 2, step = 1,
+				set = setNumber,
+			},
+		},
+	}
+end
+
 local function loadOptions()
 	options = {}
 	options.type = "group"
@@ -128,36 +164,55 @@ local function loadOptions()
 		set = set,
 		handler = Config,
 		args = {
-			barName = {
+			general = {
 				order = 1,
-				type = "select",
-				name = L["Bar texture"],
-		                dialogControl = "LSM30_Statusbar",
-				values = "GetTextures",
-				arg = "barTexture",
+				type = "group",
+				inline = true,
+				name = L["General"],
+				args = {
+					bindings = {
+						order = 1,
+						type = "toggle",
+						name = L["Show nameplate visibility status"],
+						width = "full",
+					},
+				},
 			},
-			bindings = {
+			nameplates = {
 				order = 2,
-				type = "toggle",
-				name = L["Show nameplate visibility status"],
-				width = "double",
-				arg = "bindings",
-			},
-			hideHealth = {
-				order = 3,
-				type = "toggle",
-				name = L["Hide health bar border"],
-				desc = L["A UI reload is required to make the border show back up again."],
-				width = "double",
-				arg = "hideHealth",
-			},
-			hideCast = {
-				order = 4,
-				type = "toggle",
-				name = L["Hide cast bar border"],
-				desc = L["A UI reload is required to make the border show back up again."],
-				width = "double",
-				arg = "hideCast",
+				type = "group",
+				inline = true,
+				name = L["Nameplates"],
+				args = {
+					textureName = {
+						order = 1,
+						type = "select",
+						name = L["Bar texture"],
+						dialogControl = "LSM30_Statusbar",
+						values = "GetTextures",
+					},
+					hideHealth = {
+						order = 2,
+						type = "toggle",
+						name = L["Hide health bar border"],
+						desc = L["A UI reload is required to make the border show again."],
+						width = "full",
+					},
+					hideCast = {
+						order = 3,
+						type = "toggle",
+						name = L["Hide cast bar border"],
+						desc = L["A UI reload is required to make the border show again."],
+						width = "full",
+					},
+					hideElite = {
+						order = 4,
+						type = "toggle",
+						name = L["Hide elite indicator"],
+						desc = L["A UI reload is required to make the elite indicator show again."],
+						width = "full",
+					},
+				},
 			},
 		},
 	}
@@ -170,83 +225,25 @@ local function loadOptions()
 		set = set,
 		handler = Config,
 		args = {
-			health = {
-				order = 1,
-				type = "select",
-				name = L["Health text display"],
-				desc = L["Style of display for health bar text."],
-				values = {["none"] = L["None"], ["minmax"] = L["Min / Max"], ["deff"] = L["Deficit"], ["percent"] = L["Percent"]},
-				arg = "healthType",
-			},
-			cast = {
-				order = 2,
-				type = "select",
-				name = L["Cast text display"],
-				desc = L["Style of display for cast bar text."],
-				values = {["crtmax"] = L["Current / Max"], ["none"] = L["None"], ["crt"] = L["Current"], ["percent"] = L["Percent"], ["timeleft"] = L["Time left"]},
-				arg = "castType",
-			},
-			name = {
-				order = 3,
-				type = "select",
-				name = L["Font name"],
-				desc = L["Font name for the health bar text."],
-				values = "GetFonts",
-		                dialogControl = "LSM30_Font",
-				arg = "text.name",
-			},
-			type = {
-				order = 4,
-				type = "range",
-				name = L["Font size"],
-				min = 1, max = 20, step = 1,
-				set = setNumber,
-				arg = "text.size",
-			},
-			border = {
-				order = 5,
-				type = "select",
-				name = L["Font border"],
-				values = fontBorders,
-				arg = "text.border",
-			},
-			shadow = {
-				order = 6,
+			text = {
+				order = 0,
 				type = "group",
 				inline = true,
-				name = L["Shadow"],
+				name = L["Text"],
 				args = {
-					enabled = {
-						order = 0,
-						type = "toggle",
-						name = L["Enable shadow"],
-						width = "double",
-						arg = "text.shadowEnabled",
-					},
-					color = {
+					healthType = {
 						order = 1,
-						type = "color",
-						name = L["Shadow color"],
-						hasAlpha = true,
-						set = setColor,
-						get = getColor,
-						arg = "text.shadowColor",
+						type = "select",
+						name = L["Health text display"],
+						desc = L["Style of display for health bar text."],
+						values = {["none"] = L["None"], ["minmax"] = L["Min / Max"], ["deff"] = L["Deficit"], ["percent"] = L["Percent"]},
 					},
-					x = {
+					castType = {
 						order = 2,
-						type = "range",
-						name = L["Shadow offset X"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "text.x",
-					},
-					y = {
-						order = 3,
-						type = "range",
-						name = L["Shadow offset Y"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "text.y",
+						type = "select",
+						name = L["Cast text display"],
+						desc = L["Style of display for cast bar text."],
+						values = {["crtmax"] = L["Current / Max"], ["none"] = L["None"], ["crt"] = L["Current"], ["percent"] = L["Percent"], ["timeleft"] = L["Time left"]},
 					},
 				},
 			},
@@ -260,72 +257,7 @@ local function loadOptions()
 		get = get,
 		set = set,
 		handler = Config,
-		args = {
-			name = {
-				order = 1,
-				type = "select",
-				name = L["Font name"],
-				desc = L["Font name for the actual name text above name plate bars."],
-				values = "GetFonts",
-		                dialogControl = "LSM30_Font",
-				arg = "name.name",
-			},
-			type = {
-				order = 2,
-				type = "range",
-				name = L["Font size"],
-				min = 1, max = 20, step = 1,
-				set = setNumber,
-				arg = "name.size",
-			},
-			border = {
-				order = 3,
-				type = "select",
-				name = L["Font border"],
-				values = fontBorders,
-				arg = "name.border",
-			},
-			shadow = {
-				order = 4,
-				type = "group",
-				inline = true,
-				name = L["Shadow"],
-				args = {
-					enabled = {
-						order = 0,
-						type = "toggle",
-						name = L["Enable shadow"],
-						width = "double",
-						arg = "name.shadowEnabled",
-					},
-					color = {
-						order = 1,
-						type = "color",
-						name = L["Shadow color"],
-						hasAlpha = true,
-						set = setColor,
-						get = getColor,
-						arg = "name.shadowColor",
-					},
-					x = {
-						order = 2,
-						type = "range",
-						name = L["Shadow offset X"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "name.x",
-					},
-					y = {
-						order = 3,
-						type = "range",
-						name = L["Shadow offset Y"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "name.y",
-					},
-				},
-			},
-		},
+		args = {},
 	}
 
 	options.args.level = {
@@ -335,73 +267,13 @@ local function loadOptions()
 		get = get,
 		set = set,
 		handler = Config,
-		args = {
-			name = {
-				order = 1,
-				type = "select",
-				name = L["Font name"],
-				desc = L["Font name for the level text."],
-				values = "GetFonts",
-		                dialogControl = "LSM30_Font",
-				arg = "level.name",
-			},
-			type = {
-				order = 2,
-				type = "range",
-				name = L["Font size"],
-				min = 1, max = 20, step = 1,
-				set = setNumber,
-				arg = "level.size",
-			},
-			border = {
-				order = 3,
-				type = "select",
-				name = L["Font border"],
-				values = fontBorders,
-				arg = "level.border",
-			},
-			shadow = {
-				order = 4,
-				type = "group",
-				inline = true,
-				name = L["Shadow"],
-				args = {
-					enabled = {
-						order = 0,
-						type = "toggle",
-						name = L["Enable shadow"],
-						width = "double",
-						arg = "level.shadowEnabled",
-					},
-					color = {
-						order = 1,
-						type = "color",
-						name = L["Shadow color"],
-						hasAlpha = true,
-						set = setColor,
-						get = getColor,
-						arg = "level.shadowColor",
-					},
-					x = {
-						order = 2,
-						type = "range",
-						name = L["Shadow offset X"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "level.x",
-					},
-					y = {
-						order = 3,
-						type = "range",
-						name = L["Shadow offset Y"],
-						min = -2, max = 2, step = 1,
-						set = setNumber,
-						arg = "level.y",
-					},
-				},
-			},
-		},
+		args = {},
 	}
+	
+	-- Load all of the text options in
+	loadTextSettings(options.args.text)
+	loadTextSettings(options.args.name)
+	loadTextSettings(options.args.level)
 
 	-- DB Profiles
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Nameplates.db)
@@ -419,7 +291,7 @@ SlashCmdList["NAMEPLATES"] = function(msg)
 		end
 
 		config:RegisterOptionsTable("Nameplates", options)
-		dialog:SetDefaultSize("Nameplates", 600, 500)
+		dialog:SetDefaultSize("Nameplates", 625, 500)
 		registered = true
 	end
 

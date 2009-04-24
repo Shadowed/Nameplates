@@ -6,5 +6,5 @@ svn export svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0 --force
 svn export svn://svn.wowace.com/wow/ace3/mainline/trunk/AceConfig-3.0 --force
 svn export svn://svn.wowace.com/wow/ace3/mainline/trunk/AceHook-3.0 --force
 svn export svn://svn.wowace.com/wow/ace3/mainline/trunk/CallbackHandler-1.0 --force
-svn export http://dev.wowace.com/wowace/trunk/AceGUI-3.0-SharedMediaWidgets --force
+svn://svn.wowace.com/wow/ace-gui-3-0-shared-media-widgets/mainline/trunk/AceGUI-3.0-SharedMediaWidgets --force
 @PAUSE

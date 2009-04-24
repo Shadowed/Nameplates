@@ -18,13 +18,8 @@ NameplatesLocals = {
 	["Name text"] = "Name text",
 	["Cast/Health text"] = "Cast/Health text",
 	["Level text"] = "Level text",
-	
+	["Text"] = "Text",
 	["Font name"] = "Font name",
-	["Font name for the actual name text above name plate bars."] = "Font name for the actual name text above name plate bars.",
-
-	["Font name for the level text."] = "Font name for the level text.",
-	["Font name for the health bar text."] = "Font name for the health bar text.",
-	["Font name for the cast bar text."] = "Font name for the cast bar text.",
 
 	["Font size"] = "Font size",
 	["Font border"] = "Font border",
@@ -38,6 +33,10 @@ NameplatesLocals = {
 	["Thick outline"] = "Thick outline",
 	["Monochrome"] = "Monochrome",
 	
+	["Font"] = "Font",
+	["Nameplates"] = "Nameplates",
+	["Hide elite indicator"] = "Hide elite indicator",
+
 	["Min / Max"] = "Min / Max",
 	["Deficit"] = "Deficit",
 	["Percent"] = "Percent",
@@ -56,5 +55,6 @@ NameplatesLocals = {
 	["Hide health bar border"] = "Hide health bar border",
 	["Hide cast bar border"] = "Hide cast bar border",
 	
-	["A UI reload is required to make the border show back up again."] = "A UI reload is required to make the border show back up again.",
+	["A UI reload is required to make the border show again."] = "A UI reload is required to make the border show again.",
+	["A UI reload is required to make the elite indicator show again."] = "A UI reload is required to make the elite indicator show again.",
 }

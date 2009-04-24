@@ -1,5 +1,8 @@
---[[ $Id: AceDBOptions-3.0.lua 668 2008-07-16 10:08:17Z funkydude $ ]]
-local ACEDBO_MAJOR, ACEDBO_MINOR = "AceDBOptions-3.0", 7
+--- AceDBOptions-3.0 provides a universal AceConfig options screen for managing AceDB-3.0 profiles.
+-- @class file
+-- @name AceDBOptions-3.0
+-- @release $Id: AceDBOptions-3.0.lua 765 2009-04-03 19:14:41Z nevcairiel $
+local ACEDBO_MAJOR, ACEDBO_MINOR = "AceDBOptions-3.0", 10
 local AceDBOptions, oldminor = LibStub:NewLibrary(ACEDBO_MAJOR, ACEDBO_MINOR)
 
 if not AceDBOptions then return end -- No upgrade needed
@@ -91,7 +94,24 @@ elseif LOCALE == "koKR" then
 	L["profiles"] = "프로필"
 	L["profiles_sub"] = "프로필 설정"
 elseif LOCALE == "esES" then
-	
+	L["default"] = "Por defecto"
+	L["intro"] = "Puedes cambiar el perfil activo de tal manera que cada personaje tenga diferentes configuraciones."
+	L["reset_desc"] = "Reinicia el perfil actual a los valores por defectos, en caso de que se haya estropeado la configuración o quieras volver a empezar de nuevo."
+	L["reset"] = "Reiniciar Perfil"
+	L["reset_sub"] = "Reinicar el perfil actual al de por defecto"
+	L["choose_desc"] = "Puedes crear un nuevo perfil introduciendo un nombre en el recuadro o puedes seleccionar un perfil de los ya existentes."
+	L["new"] = "Nuevo"
+	L["new_sub"] = "Crear un nuevo perfil vacio."
+	L["choose"] = "Perfiles existentes"
+	L["choose_sub"] = "Selecciona uno de los perfiles disponibles."
+	L["copy_desc"] = "Copia los ajustes de un perfil existente al perfil actual."
+	L["copy"] = "Copiar de"
+	L["delete_desc"] = "Borra los perfiles existentes y sin uso de la base de datos para ganar espacio y limpiar el archivo SavedVariables."
+	L["delete"] = "Borrar un Perfil"
+	L["delete_sub"] = "Borra un perfil de la base de datos."
+	L["delete_confirm"] = "¿Estas seguro que quieres borrar el perfil seleccionado?"
+	L["profiles"] = "Perfiles"
+	L["profiles_sub"] = "Manejar Perfiles"
 elseif LOCALE == "zhTW" then
 	L["default"] = "預設"
 	L["intro"] = "你可以選擇一個活動的資料設定檔，這樣你的每個角色就可以擁有不同的設定值，可以給你的插件設定帶來極大的靈活性。" 
@@ -132,35 +152,34 @@ elseif LOCALE == "zhCN" then
 	L["profiles_sub"] = "管理配置文件"
 elseif LOCALE == "ruRU" then
 	L["default"] = "По умолчанию"
-	L["intro"] = "Вы можете сменить активный профиль БД, этим вы можете устанавливать различные настройки для каждого персонажа."
-	L["reset_desc"] = "Сброс текущего профиля на его стандартные значения, в том случаи если ваша конфигурация испорчена, или вы желаете всё перенастроить заново."
+	L["intro"] = "Изменяя активный профиль, вы можете задать различные настройки модификаций для каждого персонажа."
+	L["reset_desc"] = "Если ваша конфигурации испорчена или если вы хотите настроить всё заново - сбросьте текущий профиль на стандартные значения."
 	L["reset"] = "Сброс профиля"
-	L["reset"] = "Сброс текущего профиля на стандартный"
-	L["choose_desc"] = "Вы можете создать новый профиль введя название в поле ввода, или выбрать один из уже существующих профилей."
+	L["reset_sub"] = "Сброс текущего профиля на стандартный"
+	L["choose_desc"] = "Вы можете создать новый профиль, введя название в поле ввода, или выбрать один из уже существующих профилей."
 	L["new"] = "Новый"
-	L["new_sub"] = "Создать новый чистый профиль."
-	L["choose"] = "Профиля"
-	L["choose_sub"] = "Выберите один из уже доступных профилей."
-	L["copy_desc"] = "Скопировать настройки профиля в на данный момент активный профиль."
-	L["copy"] = "Скопировать с"
+	L["new_sub"] = "Создать новый чистый профиль"
+	L["choose"] = "Существующие профили"
+	L["choose_sub"] = "Выбор одиного из уже доступных профилей"
+	L["copy_desc"] = "Скопировать настройки из выбранного профиля в активный."
+	L["copy"] = "Скопировать из"
 	L["delete_desc"] = "Удалить существующий и неиспользуемый профиль из БД для сохранения места, и очистить SavedVariables файл."
 	L["delete"] = "Удалить профиль"
-	L["delete_sub"] = "Удаления профиля из БД."
-	L["delete_confirm"] = "Вы уверены что вы хотите удалить выбранный профиль?"
-	L["profiles"] = "Профиля"
+	L["delete_sub"] = "Удаление профиля из БД"
+	L["delete_confirm"] = "Вы уверены, что вы хотите удалить выбранный профиль?"
+	L["profiles"] = "Профили"
 	L["profiles_sub"] = "Управление профилями"
 end
 
 local defaultProfiles
 local tmpprofiles = {}
 
---[[
-	getProfileList(db, common, nocurrent)
-	
-	db - the db object to retrieve the profiles from
-	common (boolean) - if common is true, getProfileList will add the default profiles to the return list, even if they have not been created yet
-	nocurrent (boolean) - if true then getProfileList will not display the current profile in the list
-]]--
+-- Get a list of available profiles for the specified database.
+-- You can specify which profiles to include/exclude in the list using the two boolean parameters listed below.
+-- @param db The db object to retrieve the profiles from
+-- @param common If true, getProfileList will add the default profiles to the return list, even if they have not been created yet
+-- @param nocurrent If true, then getProfileList will not display the current profile in the list
+-- @return Hashtable of all profiles with the internal name as keys and the display name as value.
 local function getProfileList(db, common, nocurrent)
 	local profiles = {}
 	
@@ -227,6 +246,11 @@ function OptionsHandlerPrototype:ListProfiles(info)
 	end
 	
 	return profiles
+end
+
+function OptionsHandlerPrototype:HasNoProfiles(info)
+	local profiles = self:ListProfiles(info)
+	return ((not next(profiles)) and true or false)
 end
 
 --[[ Copy a profile ]]
@@ -322,6 +346,7 @@ local optionsTable = {
 		get = false,
 		set = "CopyProfile",
 		values = "ListProfiles",
+		disabled = "HasNoProfiles",
 		arg = "nocurrent",
 	},
 	deldesc = {
@@ -337,18 +362,19 @@ local optionsTable = {
 		get = false,
 		set = "DeleteProfile",
 		values = "ListProfiles",
+		disabled = "HasNoProfiles",
 		arg = "nocurrent",
 		confirm = true,
 		confirmText = L["delete_confirm"],
 	},
 }
 
---[[
-	GetOptionsTable(db)
-	db - the database object to create the options table for
-	
-	creates and returns a option table to be used in your addon
-]]
+--- Get/Create a option table that you can use in your addon to control the profiles of AceDB-3.0.
+-- @param db The database object to create the options table for.
+-- @return The options table to be used in AceConfig-3.0
+-- @usage 
+-- -- Assuming `options` is your top-level options table and `self.db` is your database:
+-- options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 function AceDBOptions:GetOptionsTable(db, noDefaultProfiles)
 	local tbl = AceDBOptions.optionTables[db] or {
 			type = "group",
