@@ -1,8 +1,9 @@
 local Binding = Nameplates:NewModule("Bindings", "AceEvent-3.0")
 local L = NameplatesLocals
+local updateQueued
 
 -- The reason we hijack this as a button instead of hooking the Show* functions is mainly sanity, it's just easier to do this
-function Binding:OnEnable()
+function Binding:OnInitialize()
 	if( not self.enemyBinding ) then
 		self.enemyBinding = CreateFrame("Button", "NPEnemyBinding")
 		self.enemyBinding:SetScript("OnMouseDown", self.EnemyBindings)
@@ -19,15 +20,17 @@ function Binding:OnEnable()
 	end
 
 	self:RegisterEvent("UPDATE_BINDINGS")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	
 	self:UPDATE_BINDINGS()
 end
 
-function Binding:OnDisable()
-	self:UnregisterAllEvents()
-
-	ClearOverrideBindings(self.allBinding)
-	ClearOverrideBindings(self.enemyBinding)
-	ClearOverrideBindings(self.friendlyBinding)
+-- Update bindings since it was changed in combat
+function Binding:PLAYER_REGEN_ENABLED()
+	if( updateQueued ) then
+		updateQueued = nil
+		self:UPDATE_BINDINGS()
+	end
 end
 
 function Binding:SetupBindings(frame, ...)
@@ -40,6 +43,11 @@ end
 
 -- Update our override bindings
 function Binding:UPDATE_BINDINGS()
+	if( InCombatLockdown() ) then
+		updateQueued = true
+		return
+	end
+	
 	self:SetupBindings(self.enemyBinding, GetBindingKey("NAMEPLATES"))
 	self:SetupBindings(self.friendlyBinding, GetBindingKey("FRIENDNAMEPLATES"))
 	self:SetupBindings(self.allBinding, GetBindingKey("ALLNAMEPLATES"))
