@@ -24,27 +24,27 @@ end
 -- GUI
 local function set(info, value)
 	local cat = info[1]
-	if( cat == "general" ) then
+	if( cat == "general" or cat == "nameplates" ) then
 		Nameplates.db.profile[info[#(info)]] = value
 		Nameplates:Reload()
 	else
-		Nameplates.db.profile[cat][info[#(info)]] = value
+		Nameplates.db.profile[info.arg][info[#(info)]] = value
 		Nameplates:Reload()
 	end
 end
 
 local function get(info)
 	local cat = info[1]
-	if( cat == "general" ) then
+	if( cat == "general" or cat == "nameplates" ) then
 		return Nameplates.db.profile[info[#(info)]]
 	end
 	
-	return Nameplates.db.profile[cat][info[#(info)]]
+	return Nameplates.db.profile[info.arg][info[#(info)]]
 end
 
 -- Yes this is a quick hack
 local function setColor(info, r, g, b, a)
-	local cat = info[1]
+	local cat = info.arg
 	local key = info[#(info)]
 	
 	Nameplates.db.profile[cat][key].r = r
@@ -84,7 +84,7 @@ end
 
 local fontBorders = {[""] = L["None"], ["OUTLINE"] = L["Outline"], ["THICKOUTLINE"] = L["Thick outline"], ["MONOCHROME"] = L["Monochrome"]}
 
-local function loadTextSettings(config)
+local function loadTextSettings(config, key)
 	config.args.font = {
 		order = 1,
 		type = "group",
@@ -97,18 +97,21 @@ local function loadTextSettings(config)
 				name = L["Font name"],
 				values = "GetFonts",
 				dialogControl = "LSM30_Font",
+				arg = key,
 			},
 			border = {
 				order = 2,
 				type = "select",
 				name = L["Font border"],
 				values = fontBorders,
+				arg = key,
 			},
 			size = {
 				order = 3,
 				type = "range",
 				name = L["Font size"],
 				min = 1, max = 20, step = 1,
+				arg = key,
 			},
 		},
 	}
@@ -118,11 +121,13 @@ local function loadTextSettings(config)
 		type = "group",
 		inline = true,
 		name = L["Shadow"],
+		arg = key,
 		args = {
 			shadowEnabled = {
 				order = 0,
 				type = "toggle",
 				name = L["Enable shadow"],
+				arg = key,
 			},
 			shadowColor = {
 				order = 1,
@@ -131,6 +136,7 @@ local function loadTextSettings(config)
 				hasAlpha = true,
 				set = setColor,
 				get = getColor,
+				arg = key,
 			},
 			x = {
 				order = 2,
@@ -138,6 +144,7 @@ local function loadTextSettings(config)
 				name = L["Shadow offset X"],
 				min = -2, max = 2, step = 1,
 				set = setNumber,
+				arg = key,
 			},
 			y = {
 				order = 3,
@@ -145,6 +152,7 @@ local function loadTextSettings(config)
 				name = L["Shadow offset Y"],
 				min = -2, max = 2, step = 1,
 				set = setNumber,
+				arg = key,
 			},
 		},
 	}
@@ -237,6 +245,7 @@ local function loadOptions()
 						name = L["Health text display"],
 						desc = L["Style of display for health bar text."],
 						values = {["none"] = L["None"], ["minmax"] = L["Min / Max"], ["deff"] = L["Deficit"], ["percent"] = L["Percent"]},
+						arg = "text",
 					},
 					castType = {
 						order = 2,
@@ -244,6 +253,7 @@ local function loadOptions()
 						name = L["Cast text display"],
 						desc = L["Style of display for cast bar text."],
 						values = {["crtmax"] = L["Current / Max"], ["none"] = L["None"], ["crt"] = L["Current"], ["percent"] = L["Percent"], ["timeleft"] = L["Time left"]},
+						arg = "text",
 					},
 				},
 			},
@@ -271,9 +281,9 @@ local function loadOptions()
 	}
 	
 	-- Load all of the text options in
-	loadTextSettings(options.args.text)
-	loadTextSettings(options.args.name)
-	loadTextSettings(options.args.level)
+	loadTextSettings(options.args.text, "text")
+	loadTextSettings(options.args.name, "name")
+	loadTextSettings(options.args.level, "level")
 
 	-- DB Profiles
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(Nameplates.db)
@@ -298,7 +308,7 @@ SlashCmdList["NAMEPLATES"] = function(msg)
 	dialog:Open("Nameplates")
 end
 
--- Add the general options + profile, we don't add spells/anchors because it doesn't support sub cats
+-- Add the options to the default Blizzard UI
 local register = CreateFrame("Frame", nil, InterfaceOptionsFrame)
 register:SetScript("OnShow", function(self)
 	self:SetScript("OnShow", nil)

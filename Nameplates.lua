@@ -24,7 +24,6 @@ function Nameplates:OnInitialize()
 	self.db = LibStub:GetLibrary("AceDB-3.0"):New("NameplatesDB", self.defaults)
 	self.revision = tonumber(string.match("$Revision$", "(%d+)") or 1)
 	
-
 	SML = LibStub:GetLibrary("LibSharedMedia-3.0")
 end
 
