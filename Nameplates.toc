@@ -23,6 +23,7 @@ localization.deDE.lua
 localization.frFR.lua
 localization.zhCN.lua
 localization.zhTW.lua
+localization.koKR.lua
 
 Nameplates.lua
 config.lua
