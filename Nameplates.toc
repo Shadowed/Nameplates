@@ -1,16 +1,13 @@
-## Interface: 30000
+## Interface: 30200
 ## Title: Nameplates Modifier
 ## Notes: Allows you to do basic configuration to the default Blizzard nameplates
-## Author: Mayen
-## Version: $Revision$
+## Author: Shadowed
 ## SavedVariables: NameplatesDB
-## OptionalDeps: LibStub, Ace3
 
 libs\LibStub-1.0\LibStub-1.0.xml
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\AceEvent-3.0\AceEvent-3.0.xml
-libs\AceHook-3.0\AceHook-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
 libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 libs\AceGUI-3.0\AceGUI-3.0.xml
@@ -19,8 +16,6 @@ libs\LibSharedMedia-3.0\lib.xml
 libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
 
 localization.enUS.lua
-localization.deDE.lua
-localization.frFR.lua
 localization.zhCN.lua
 localization.zhTW.lua
 localization.koKR.lua
