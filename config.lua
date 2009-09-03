@@ -220,6 +220,13 @@ local function loadOptions()
 						desc = L["A UI reload is required to make the elite indicator show again."],
 						width = "full",
 					},
+					hideUninterruptible = {
+						order = 5,
+						type = "toggle",
+						name = L["Hide cast uninterruptible shield"],
+						desc = L["A UI reload is required to make the cast shield indicator show again."],
+						width = "full",
+					},
 				},
 			},
 		},
