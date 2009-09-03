@@ -15,6 +15,7 @@ function Nameplates:OnInitialize()
 			hideHealth = false,
 			hideCast = false,
 			hideElite = false,
+			hideUninterruptible = false,
 			name = { name = "Friz Quadrata TT", size = 12, border = "", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0 },
 			level = { name = "Friz Quadrata TT", size = 11, border = "", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0  },
 			text = { healthType = "percent", castType = "crtmax", name = "Friz Quadrata TT", size = 8, border = "OUTLINE", shadowEnabled = false, shadowColor = { r = 0, g = 0, b = 0, a = 1 }, x = 0, y = 0  },
@@ -59,11 +60,17 @@ end
 function Nameplates:SetupHiding(texture, type)
 	if( self.db.profile[type] ) then
 		texture:Hide()
+		
+		if( type == "hideUninterruptible" ) then
+			texture:SetHeight(0.5)
+			texture:SetWidth(0.5)
+			texture:SetTexture("")
+		end
 	end
 end
 
 function Nameplates:OnShow(frame)
-	local threatGlow, healthBorder, castBorder, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon, mobIcon = frame:GetParent():GetRegions()
+	local threatGlow, healthBorder, castBorder, castUninterruptible, spellIcon, highlightTexture, nameText, levelText, bossIcon, raidIcon, mobIcon = frame:GetParent():GetRegions()
 
 	-- Health bar
 	frame:SetStatusBarTexture(SML:Fetch(SML.MediaType.STATUSBAR, self.db.profile.textureName))
@@ -73,10 +80,11 @@ function Nameplates:OnShow(frame)
 	self:SetupFontString(nameText, "name")
 	self:SetupFontString(levelText, "level")
 	
-	-- Hide borders
+	-- Hide things
 	self:SetupHiding(healthBorder, "hideHealth")
 	self:SetupHiding(castBorder, "hideCast")
 	self:SetupHiding(mobIcon, "hideElite")
+	self:SetupHiding(castUninterruptible, "hideUninterruptible")
 end
 
 function Nameplates:HealthOnValueChanged(frame, value)
