@@ -1,7 +1,6 @@
 NameplatesLocals = {
-	["A UI reload is required to make the cast shield indicator show again."] = "A UI reload is required to make the cast shield indicator show again.",
-	["Hide cast uninterruptible shield"] = "Hide cast uninterruptible shield",
 	["A UI reload is required to make the border show again."] = "A UI reload is required to make the border show again.",
+	["A UI reload is required to make the cast shield indicator show again."] = "A UI reload is required to make the cast shield indicator show again.",
 	["A UI reload is required to make the elite indicator show again."] = "A UI reload is required to make the elite indicator show again.",
 	["All name plates are now hidden."] = "All name plates are now hidden.",
 	["All name plates are now visible."] = "All name plates are now visible.",
@@ -23,6 +22,7 @@ NameplatesLocals = {
 	["General"] = "General",
 	["Health text display"] = "Health text display",
 	["Hide cast bar border"] = "Hide cast bar border",
+	["Hide cast uninterruptible shield"] = "Hide cast uninterruptible shield",
 	["Hide elite indicator"] = "Hide elite indicator",
 	["Hide health bar border"] = "Hide health bar border",
 	["Level text"] = "Level text",
