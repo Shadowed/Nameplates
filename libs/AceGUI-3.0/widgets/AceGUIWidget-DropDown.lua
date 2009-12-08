@@ -1,7 +1,18 @@
---[[ $Id: AceGUIWidget-DropDown.lua 815 2009-07-08 20:58:17Z nevcairiel $ ]]--
-local min, max, floor = math.min, math.max, math.floor
-
+--[[ $Id: AceGUIWidget-DropDown.lua 877 2009-11-02 15:56:50Z nevcairiel $ ]]--
 local AceGUI = LibStub("AceGUI-3.0")
+
+-- Lua APIs
+local min, max, floor = math.min, math.max, math.floor
+local select, pairs, ipairs = select, pairs, ipairs
+local tsort = table.sort
+
+-- WoW APIs
+local UIParent, CreateFrame = UIParent, CreateFrame
+local _G = _G
+
+-- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
+-- List them here for Mikk's FindGlobals script
+-- GLOBALS: CLOSE
 
 local function fixlevels(parent,...)
 	local i = 1
@@ -27,12 +38,12 @@ end
 
 do
 	local widgetType = "Dropdown-Pullout"
-	local widgetVersion = 2
+	local widgetVersion = 3
 	
 	--[[ Static data ]]--
 	
 	local backdrop = {
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+		bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
 		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
 		edgeSize = 32,
 		tileSize = 32,
@@ -344,7 +355,7 @@ end
 
 do
 	local widgetType = "Dropdown"
-	local widgetVersion = 20
+	local widgetVersion = 21
 	
 	--[[ Static data ]]--
 	
@@ -521,6 +532,11 @@ do
 	end
 	
 	-- exported
+	local function GetValue(self)
+		return self.value
+	end
+	
+	-- exported
 	local function SetItemValue(self, item, value)
 		if not self.multiselect then return end
 		for i, widget in self.pullout:IterateItems() do
@@ -571,7 +587,7 @@ do
 		for v in pairs(list) do
 			sortlist[#sortlist + 1] = v
 		end
-		table.sort(sortlist)
+		tsort(sortlist)
 		
 		for i, value in pairs(sortlist) do
 			AddListItem(self, value, list[value])
@@ -627,6 +643,7 @@ do
 
 		self.SetText     = SetText
 		self.SetValue    = SetValue
+		self.GetValue    = GetValue
 		self.SetList     = SetList
 		self.SetLabel    = SetLabel
 		self.SetDisabled = SetDisabled

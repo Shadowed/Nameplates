@@ -24,11 +24,25 @@
 -- f:AddChild(btn)
 -- @class file
 -- @name AceGUI-3.0
--- @release $Id: AceGUI-3.0.lua 815 2009-07-08 20:58:17Z nevcairiel $
-local ACEGUI_MAJOR, ACEGUI_MINOR = "AceGUI-3.0", 25
+-- @release $Id: AceGUI-3.0.lua 896 2009-12-06 16:29:49Z nevcairiel $
+local ACEGUI_MAJOR, ACEGUI_MINOR = "AceGUI-3.0", 30
 local AceGUI, oldminor = LibStub:NewLibrary(ACEGUI_MAJOR, ACEGUI_MINOR)
 
 if not AceGUI then return end -- No upgrade needed
+
+-- Lua APIs
+local tconcat, tremove, tinsert = table.concat, table.remove, table.insert
+local select, pairs, next, type = select, pairs, next, type
+local error, assert, loadstring = error, assert, loadstring
+local setmetatable, rawget, rawset = setmetatable, rawget, rawset
+local math_max = math.max
+
+-- WoW APIs
+local UIParent = UIParent
+
+-- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
+-- List them here for Mikk's FindGlobals script
+-- GLOBALS: geterrorhandler, LibStub
 
 --local con = LibStub("AceConsole-3.0",true)
 
@@ -42,17 +56,6 @@ AceGUI.WidgetVersions = AceGUI.WidgetVersions or {}
 local WidgetRegistry = AceGUI.WidgetRegistry
 local LayoutRegistry = AceGUI.LayoutRegistry
 local WidgetVersions = AceGUI.WidgetVersions
-
-local pcall = pcall
-local select = select
-local pairs = pairs
-local ipairs = ipairs
-local type = type
-local assert = assert
-local tinsert = tinsert
-local tremove = tremove
-local CreateFrame = CreateFrame
-local UIParent = UIParent
 
 --[[
 	 xpcall safecall implementation
@@ -81,7 +84,7 @@ local function CreateDispatcher(argCount)
 	
 	local ARGS = {}
 	for i = 1, argCount do ARGS[i] = "arg"..i end
-	code = code:gsub("ARGS", table.concat(ARGS, ", "))
+	code = code:gsub("ARGS", tconcat(ARGS, ", "))
 	return assert(loadstring(code, "safecall Dispatcher["..argCount.."]"))(xpcall, errorhandler)
 end
 
@@ -99,39 +102,58 @@ local function safecall(func, ...)
 end
 
 -- Recycling functions
-local new, del
+local newWidget, delWidget
 do
+	-- Version Upgrade in Minor 29
+	-- Internal Storage of the objects changed, from an array table
+	-- to a hash table, and additionally we introduced versioning on
+	-- the widgets which would discard all widgets from a pre-29 version
+	-- anyway, so we just clear the storage now, and don't try to 
+	-- convert the storage tables to the new format.
+	-- This should generally not cause *many* widgets to end up in trash,
+	-- since once dialogs are opened, all addons should be loaded already
+	-- and AceGUI should be on the latest version available on the users
+	-- setup.
+	-- -- nevcairiel - Nov 2nd, 2009
+	if oldminor and oldminor < 29 and AceGUI.objPools then
+		AceGUI.objPools = nil
+	end
+	
 	AceGUI.objPools = AceGUI.objPools or {}
 	local objPools = AceGUI.objPools
 	--Returns a new instance, if none are available either returns a new table or calls the given contructor
-	function new(type,constructor,...)
-		if not type then
-			type = "table"
+	function newWidget(type)
+		if not WidgetRegistry[type] then
+			error("Attempt to instantiate unknown widget type", 2)
 		end
+		
 		if not objPools[type] then
 			objPools[type] = {}
 		end
-		local newObj = tremove(objPools[type])
+		
+		local newObj = next(objPools[type])
 		if not newObj then
-			newObj = constructor and constructor(...) or {}
+			newObj = WidgetRegistry[type]()
+			newObj.AceGUIWidgetVersion = WidgetVersions[type]
+		else
+			objPools[type][newObj] = nil
+			-- if the widget is older then the latest, don't even try to reuse it
+			-- just forget about it, and grab a new one.
+			if not newObj.AceGUIWidgetVersion or newObj.AceGUIWidgetVersion < WidgetVersions[type] then
+				return newWidget(type)
+			end
 		end
 		return newObj
 	end
 	-- Releases an instance to the Pool
-	function del(obj,type)
-		if not type then
-			type = "table"
-		end
+	function delWidget(obj,type)
 		if not objPools[type] then
 			objPools[type] = {}
 		end
-		for i,v in ipairs(objPools[type]) do
-			if v == obj then
-				error("Attempt to Release Widget that is already released")
-				return
-			end
+		if objPools[type][obj] then
+			error("Attempt to Release Widget that is already released", 2)
 		end
-		tinsert(objPools[type],obj)
+		objPools[type][obj] = true
 	end
 end
 
@@ -148,9 +170,8 @@ end
 -- @param type The type of the widget.
 -- @return The newly created widget.
 function AceGUI:Create(type)
-	local reg = WidgetRegistry
-	if reg[type] then
-		local widget = new(type,reg[type])
+	if WidgetRegistry[type] then
+		local widget = newWidget(type)
 
 		if rawget(widget,'Acquire') then
 			widget.OnAcquire = widget.Acquire
@@ -212,7 +233,7 @@ function AceGUI:Release(widget)
 		widget.content.width = nil
 		widget.content.height = nil
 	end
-	del(widget,widget.type)
+	delWidget(widget, widget.type)
 end
 
 -----------
@@ -264,7 +285,7 @@ end
 		:OnHeightSet(height) - Called when the height of the widget is changed
 			Widgets should not use the OnSizeChanged events of thier frame or content members, use these methods instead
 			AceGUI already sets a handler to the event
-		:OnLayoutFinished(width, height) - called after a layout has finished, the width and height will be the width and height of the
+		:LayoutFinished(width, height) - called after a layout has finished, the width and height will be the width and height of the
 			area used for controls. These can be nil if the layout used the existing size to layout the controls.
 
 ]]
@@ -651,8 +672,8 @@ AceGUI:RegisterLayout("List",
 	 
 	 	local height = 0
 	 	local width = content.width or content:GetWidth() or 0
-		for i, child in ipairs(children) do
-			
+		for i = 1, #children do
+			local child = children[i]
 			
 			local frame = child.frame
 			frame:ClearAllPoints()
@@ -723,12 +744,18 @@ AceGUI:RegisterLayout("Flow",
 	 	local frameoffset
 	 	local lastframeoffset
 	 	local oversize 
-		for i, child in ipairs(children) do
+		for i = 1, #children do
+			local child = children[i]
 			oversize = nil
 			local frame = child.frame
 			local frameheight = frame.height or frame:GetHeight() or 0
 			local framewidth = frame.width or frame:GetWidth() or 0
 			lastframeoffset = frameoffset
+			-- HACK: Why did we set a frameoffset of (frameheight / 2) ? 
+			-- That was moving all widgets half the widgets size down, is that intended?
+			-- Actually, it seems to be neccessary for many cases, we'll leave it in for now.
+			-- If widgets seem to anchor weirdly with this, provide a valid alignoffset for them.
+			-- TODO: Investigate moar!
 			frameoffset = child.alignoffset or (frameheight / 2)
 			
 			if child.width == "relative" then
@@ -752,6 +779,11 @@ AceGUI:RegisterLayout("Flow",
 				-- if there isn't available width for the control start a new row
 				-- if a control is "fill" it will be on a row of its own full width
 				if usedwidth == 0 or ((framewidth) + usedwidth > width) or child.width == "fill" then
+					if isfullheight then
+						-- a previous row has already filled the entire height, there's nothing we can usefully do anymore
+						-- (maybe error/warn about this?)
+						break
+					end
 					--anchor the previous row, we will now know its height and offset
 					rowstart:SetPoint("TOPLEFT",content,"TOPLEFT",0,-(height+(rowoffset-rowstartoffset)+3))
 					height = height + rowheight + 3
@@ -770,9 +802,10 @@ AceGUI:RegisterLayout("Flow",
 					--math.max(rowheight-rowoffset+frameoffset, frameheight-frameoffset+rowoffset)
 					
 					--offset is always the larger of the two offsets
-					rowoffset = math.max(rowoffset, frameoffset)
+					rowoffset = math_max(rowoffset, frameoffset)
 					
-					rowheight = math.max(rowheight,rowoffset+(frameheight/2))
+					rowheight = math_max(rowheight,rowoffset+(frameheight/2))
+					--print("type:", child.type, "offset:",frameoffset-lastframeoffset)
 					frame:SetPoint("TOPLEFT",children[i-1].frame,"TOPRIGHT",0,frameoffset-lastframeoffset)
 					usedwidth = framewidth + usedwidth
 				end
@@ -814,7 +847,6 @@ AceGUI:RegisterLayout("Flow",
 			if child.height == "fill" then
 				frame:SetPoint("BOTTOM",content,"BOTTOM")
 				isfullheight = true
-				break
 			end
 		end
 		

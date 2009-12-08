@@ -1,13 +1,15 @@
---- AceConfigRegistry-3.0 handles central registration of options tables in use by addons and modules.
--- Options tables can be registered as raw tables, or as function refs that return a table.\\
--- These functions receive two arguments: "uiType" and "uiName". \\
--- Valid "uiTypes": "cmd", "dropdown", "dialog". This is verified by the library at call time. \\
--- The "uiName" field is expected to contain the full name of the calling addon, including version, e.g. "FooBar-1.0". This is verified by the library at call time.\\
--- :IterateOptionsTables() and :GetOptionsTable() always return a function reference that the requesting config handling addon must call with the above arguments.
+--- AceConfigRegistry-3.0 handles central registration of options tables in use by addons and modules.\\
+-- Options tables can be registered as raw tables, OR as function refs that return a table.\\
+-- Such functions receive three arguments: "uiType", "uiName", "appName". \\
+-- * Valid **uiTypes**: "cmd", "dropdown", "dialog". This is verified by the library at call time. \\
+-- * The **uiName** field is expected to contain the full name of the calling addon, including version, e.g. "FooBar-1.0". This is verified by the library at call time.\\
+-- * The **appName** field is the options table name as given at registration time \\
+-- 
+-- :IterateOptionsTables() (and :GetOptionsTable() if only given one argument) return a function reference that the requesting config handling addon must call with valid "uiType", "uiName".
 -- @class file
 -- @name AceConfigRegistry-3.0
--- @release $Id: AceConfigRegistry-3.0.lua 785 2009-04-05 14:57:29Z nevcairiel $
-local MAJOR, MINOR = "AceConfigRegistry-3.0", 9
+-- @release $Id: AceConfigRegistry-3.0.lua 890 2009-12-06 12:50:05Z nevcairiel $
+local MAJOR, MINOR = "AceConfigRegistry-3.0", 11
 local AceConfigRegistry = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigRegistry then return end
@@ -19,6 +21,12 @@ local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 if not AceConfigRegistry.callbacks then
 	AceConfigRegistry.callbacks = CallbackHandler:New(AceConfigRegistry)
 end
+
+-- Lua APIs
+local tinsert, tconcat = table.insert, table.concat
+local strfind, strmatch = string.find, string.match
+local type, tostring, select, pairs = type, tostring, select, pairs
+local error, assert = error, assert
 
 -----------------------------------------------------------------------
 -- Validating options table consistency:
@@ -39,7 +47,7 @@ local function err(msg, errlvl, ...)
 	for i=select("#",...),1,-1 do
 		tinsert(t, (select(i, ...)))
 	end
-	error(MAJOR..":ValidateOptionsTable(): "..table.concat(t,".")..msg, errlvl+2)
+	error(MAJOR..":ValidateOptionsTable(): "..tconcat(t,".")..msg, errlvl+2)
 end
 
 
@@ -63,6 +71,7 @@ local basekeys={
 	type=isstring,
 	name=isstringfunc,
 	desc=optstringfunc,
+	descStyle=optstring,
 	order=optmethodnumber,
 	validate=optmethodfalse,
 	confirm=optmethodbool,
@@ -118,6 +127,8 @@ local typedkeys={
 	},
 	toggle={
 		tristate=optbool,
+		image=optstringfunc,
+		imageCoords=optmethodtable,
 	},
 	tristate={
 	},
@@ -230,14 +241,12 @@ local function validate(options,errlvl,...)
 	end
 end
 
--- -------------------------------------------------------------------
--- :ValidateOptionsTable(options,name,errlvl)
--- - options - the table
--- - name    - (string) name of table, used in error reports
--- - errlvl  - (optional number) error level offset, default 0
---
--- Validates basic structure and integrity of an options table
+
+--- Validates basic structure and integrity of an options table \\
 -- Does NOT verify that get/set etc actually exist, since they can be defined at any depth
+-- @param options The table to be validated
+-- @param name The name of the table to be validated (shown in any error message)
+-- @param errlvl (optional number) error level offset, default 0 (=errors point to the function calling :ValidateOptionsTable)
 function AceConfigRegistry:ValidateOptionsTable(options,name,errlvl)
 	errlvl=(errlvl or 0)+1
 	name = name or "Optionstable"
@@ -247,7 +256,7 @@ function AceConfigRegistry:ValidateOptionsTable(options,name,errlvl)
 	validate(options,errlvl,name)
 end
 
---- Fires a ConfigTableChange callback for those listening in on it, allowing config GUIs to refresh.
+--- Fires a "ConfigTableChange" callback for those listening in on it, allowing config GUIs to refresh.
 -- You should call this function if your options table changed from any outside event, like a game event
 -- or a timer.
 -- @param appName The application name as given to `:RegisterOptionsTable()`
@@ -274,7 +283,8 @@ end
 
 --- Register an options table with the config registry.
 -- @param appName The application name as given to `:RegisterOptionsTable()`
--- @param options The options table or a function reference that generates it on demand.
+-- @param options The options table, OR a function reference that generates it on demand. \\
+-- See the top of the page for info on arguments passed to such functions.
 function AceConfigRegistry:RegisterOptionsTable(appName, options)
 	if type(options)=="table" then
 		if options.type~="group" then	-- quick sanity checker
@@ -293,7 +303,7 @@ function AceConfigRegistry:RegisterOptionsTable(appName, options)
 		AceConfigRegistry.tables[appName] = function(uiType, uiName, errlvl)
 			errlvl=(errlvl or 0)+1
 			validateGetterArgs(uiType, uiName, errlvl)
-			local tab = assert(options(uiType, uiName))
+			local tab = assert(options(uiType, uiName, appName))
 			if not AceConfigRegistry.validated[uiType][appName] then
 				AceConfigRegistry:ValidateOptionsTable(tab, appName, errlvl)	-- upgradable
 				AceConfigRegistry.validated[uiType][appName] = true
@@ -311,13 +321,6 @@ function AceConfigRegistry:IterateOptionsTables()
 end
 
 
----------------------------------------------------------------------
--- :GetOptionsTable(appName)
--- - appName - which addon to retreive the options table of
--- Optional:
--- - uiType - "cmd", "dropdown", "dialog"
--- - uiName - e.g. "MyLib-1.0"
---
 
 
 --- Query the registry for a specific options table.
@@ -325,8 +328,8 @@ end
 -- can call with (uiType,uiName) to get the table.\\
 -- If uiType&uiName are given, the table is returned.
 -- @param appName The application name as given to `:RegisterOptionsTable()`
--- @param uiType The type of UI to get the table for.
--- @param uiName The name of the library/addon querying the table.
+-- @param uiType The type of UI to get the table for, one of "cmd", "dropdown", "dialog"
+-- @param uiName The name of the library/addon querying for the table, e.g. "MyLib-1.0"
 function AceConfigRegistry:GetOptionsTable(appName, uiType, uiName)
 	local f = AceConfigRegistry.tables[appName]
 	if not f then
