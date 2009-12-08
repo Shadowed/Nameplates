@@ -153,7 +153,7 @@ local function hookFrames(...)
 	for i=1, select("#", ...) do
 		local frame = select(i, ...)
 		local region = frame:GetRegions()
-		if( not frames[frame] and not frame:GetName() and region and region:GetObjectType() == "Texture" and region:GetTexture() == "Interface\\TargetingFrame\\UI-TargetingFrame-Flash" ) then
+		if( not frames[frame] and not frame:GetName() and region and region:GetFrameType() == "Texture" and region:GetTexture() == "Interface\\TargetingFrame\\UI-TargetingFrame-Flash" ) then
 			frames[frame] = true
 
 			local health, cast = frame:GetChildren()
