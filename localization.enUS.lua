@@ -1,4 +1,5 @@
-NameplatesLocals = {
+local Nameplates = select(2, ...)
+Nameplates.L = {
 	["A UI reload is required to make the border show again."] = "A UI reload is required to make the border show again.",
 	["A UI reload is required to make the cast shield indicator show again."] = "A UI reload is required to make the cast shield indicator show again.",
 	["A UI reload is required to make the elite indicator show again."] = "A UI reload is required to make the elite indicator show again.",

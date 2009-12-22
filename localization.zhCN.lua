@@ -2,7 +2,7 @@ if( GetLocale() ~= "zhCN" ) then
 	return
 end
 
-NameplatesLocals = {
+Nameplates.L = setmetatable({
 	-- Status
 	["Enemy player/npc name plates are now visible."] = "敌对玩家/NPC姓名板当前为显示状态",
 	["Enemy player/npc name plates are now hidden."] = "敌对玩家/NPC姓名板当前为隐藏状态",
@@ -61,4 +61,4 @@ NameplatesLocals = {
 
 	["A UI reload is required to make the border show again."] = "只有当你重载界面后才能再次显示边框",
 	["A UI reload is required to make the elite indicator show again."] = "只有当你重载界面后才能再次显示精英指示器",
-}
+}, {__index = Nameplates.L})

@@ -1,5 +1,6 @@
+local Nameplates = select(2, ...)
 local Binding = Nameplates:NewModule("Bindings", "AceEvent-3.0")
-local L = NameplatesLocals
+local L = Nameplates.L
 local updateQueued
 
 -- The reason we hijack this as a button instead of hooking the Show* functions is mainly sanity, it's just easier to do this

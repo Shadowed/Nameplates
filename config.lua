@@ -1,7 +1,6 @@
-if( not Nameplates ) then return end
-
+local Nameplates = select(2, ...)
 local Config = Nameplates:NewModule("Config")
-local L = NameplatesLocals
+local L = Nameplates.L
 
 local SML, registered, options, config, dialog
 

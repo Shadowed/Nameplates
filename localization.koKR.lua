@@ -2,7 +2,8 @@ if( GetLocale() ~= "koKR" ) then
 	return
 end
 
-NameplatesLocals = {
+local Nameplates = select(2, ...)
+Nameplates.L = setmetatable({
   -- Status
 	["Enemy player/npc name plates are now visible."] = "적대적 Player/NPC 이름표 표시.",
 	["Enemy player/npc name plates are now hidden."] = "적대적 Player/NPC 이름표 숨김.",
@@ -61,4 +62,4 @@ NameplatesLocals = {
 
 	["A UI reload is required to make the border show again."] = "선택한 테두리 옵션을 보려면 재시작이 필요합니다.",
 	["A UI reload is required to make the elite indicator show again."] = "선택한 정예 표시 옵션을 보려면 재시작이 필요합니다.",
-}
+}, {__index = Nameplates.L})

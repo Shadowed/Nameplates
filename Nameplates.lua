@@ -1,8 +1,9 @@
 --[[ 
-	Nameplates, Mayen/Selari (Horde) from Illidan (US) PvP
+	Nameplates, Shadow (Horde) from Mal'Ganis (US)
 ]]
 
-Nameplates = LibStub("AceAddon-3.0"):NewAddon("Nameplates", "AceEvent-3.0", "AceHook-3.0")
+local Nameplates = select(2, ...)
+Nameplates = LibStub("AceAddon-3.0"):NewAddon(Nameplates, "Nameplates", "AceEvent-3.0", "AceHook-3.0")
 
 local frames = {}
 local SML
