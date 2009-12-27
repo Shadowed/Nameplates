@@ -2,6 +2,7 @@ if( GetLocale() ~= "zhCN" ) then
 	return
 end
 
+local Nameplates = select(2, ...)
 Nameplates.L = setmetatable({
 	-- Status
 	["Enemy player/npc name plates are now visible."] = "敌对玩家/NPC姓名板当前为显示状态",

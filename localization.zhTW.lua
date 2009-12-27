@@ -62,4 +62,4 @@ Nameplates.L = setmetatable({
 	
 	["A UI reload is required to make the border show again."] = "只有當你重載界面后才能再次顯示邊框",
 	["A UI reload is required to make the elite indicator show again."] = "只有當你重載界面后才能再次顯示精英指示器",
-}, {__index = Namepaltes.L})
+}, {__index = Nameplates.L})
